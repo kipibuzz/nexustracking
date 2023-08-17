@@ -29,23 +29,33 @@ session = Session.builder.configs(CONNECTION_PARAMETERS).create()
 # st.write(attendees)
  
 # Verify the code and mark attendance
+
+# ... (import statements and Snowflake configuration)
+
+# Verify the code and mark attendance
 def verify_and_mark_attendance(verification_code):
-    attendees = session.read.table("EMP")
+    attendees = session.read.table("NEXUS.ATTENDENCE.EMP")  # Adjust the schema name
     filtered_attendee = attendees.filter(attendees["CODE"] == verification_code).filter(~attendees["ATTENDED"])
     if len(filtered_attendee.collect()) > 0:
         attendee_id = filtered_attendee.collect()[0]["ATTENDEE_ID"]
+        
+        # Mark attendee as attended using the DataFrame API
         attendees.write \
             .overwrite() \
             .filter(attendees["CODE"] == verification_code) \
             .filter(~attendees["ATTENDED"]) \
             .set("ATTENDED", True)
+        
+        # Update event statistics
+        session.read.table("NEXUS.ATTENDENCE.EVENT_STATISTICS").write \
+            .overwrite() \
+            .filter("EVENT_DATE = CURRENT_DATE()") \
+            .set("TOTAL_VERIFIED", "TOTAL_VERIFIED + 1") \
+            .set("TOTAL_ATTENDED", "TOTAL_ATTENDED + 1")
+        
         return attendee_id
     else:
         return None
-
-
-
-
 
 # Streamlit app
 st.title('Event Attendance Verification')
@@ -55,17 +65,13 @@ if st.button('Verify'):
         attendee_id = verify_and_mark_attendance(verification_code)
         if attendee_id is not None:
             st.success(f'Code verified successfully for Attendee ID: {attendee_id}! They are marked as attended.')
-            # Increment statistics in Event_Statistics table
-            session.execute(
-    f"UPDATE EVENT_STATISTICS SET TOTAL_VERIFIED = TOTAL_VERIFIED + 1, TOTAL_ATTENDED = TOTAL_ATTENDED + 1 WHERE EVENT_DATE = CURRENT_DATE()"
-)
-
         else:
             st.error('Invalid code or code already used.')
-# # Display the attendee table
-attendees = session.read.table("EMP")
-#st.write(attendees)
-# Display event statistics
-statistics = session.read.table("EVENT_STATISTICS")
-st.write(statistics)
 
+# Display the attendee table
+attendees = session.read.table("NEXUS.ATTENDENCE.EMP")  # Adjust the schema name
+st.write(attendees)
+
+# Display event statistics
+statistics = session.read.table("NEXUS.ATTENDENCE.EVENT_STATISTICS")  # Adjust the schema name
+st.write(statistics)
