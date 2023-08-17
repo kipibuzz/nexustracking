@@ -13,7 +13,7 @@ CONNECTION_PARAMETERS = {
 
 # Function to verify and mark attendance
 def verify_and_mark_attendance(verification_code):
-    conn = snowflake.connector.connect(**CONNECTION_PARAMETERS)
+    conn = snowflake.connector.connect(CONNECTION_PARAMETERS)
     cursor = conn.cursor()
 
     # Check if attendee exists and has not attended
@@ -21,36 +21,37 @@ def verify_and_mark_attendance(verification_code):
         f"SELECT ATTENDEE_ID, ATTENDED FROM EMP WHERE CODE = '{verification_code}'"
     )
     row = cursor.fetchone()
-    if row and not row[1]:
-        attendee_id = row[0]
-
-        # Mark attendance
-        cursor.execute(
-            f"UPDATE EMP SET ATTENDED = TRUE WHERE ATTENDEE_ID = '{attendee_id}'"
-        )
-        conn.commit()
-
-        cursor.close()
-        conn.close()
-        return attendee_id
+    if row:
+        attendee_id, attended = row
+        if attended:
+            message = f'Attendance already marked for Attendee ID: {attendee_id}'
+        else:
+            # Mark attendance
+            cursor.execute(
+                f"UPDATE EMP SET ATTENDED = TRUE WHERE ATTENDEE_ID = '{attendee_id}'"
+            )
+            conn.commit()
+            message = f'Code verified successfully for Attendee ID: {attendee_id}! They are marked as attended.'
     else:
-        cursor.close()
-        conn.close()
-        return None
+        message = 'Invalid code'
+
+    cursor.close()
+    conn.close()
+    return message
 
 # Streamlit app
 st.title('Event Attendance Verification')
 verification_code = st.text_input('Enter Verification Code:')
 if st.button('Verify'):
     if verification_code:
-        attendee_id = verify_and_mark_attendance(verification_code)
-        if attendee_id is not None:
-            st.success(f'Code verified successfully for Attendee ID: {attendee_id}! They are marked as attended.')
+        result_message = verify_and_mark_attendance(verification_code)
+        if 'successfully' in result_message:
+            st.success(result_message)
         else:
-            st.error('Invalid code or attendance already marked.')
+            st.error(result_message)
 
 # Display event statistics
-conn_stats = snowflake.connector.connect(**CONNECTION_PARAMETERS)
+conn_stats = snowflake.connector.connect(CONNECTION_PARAMETERS)
 cursor_stats = conn_stats.cursor()
 cursor_stats.execute("SELECT * FROM EVENT_STATISTICS")
 statistics = cursor_stats.fetchall()
