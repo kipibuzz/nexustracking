@@ -31,17 +31,18 @@ session = Session.builder.configs(CONNECTION_PARAMETERS).create()
 # Verify the code and mark attendance
 def verify_and_mark_attendance(verification_code):
     attendees = session.read.table("EMP")
-    filtered_attendee = attendees.filter(attendees["code"] == verification_code).filter(attendees["attended"] == False)
+    filtered_attendee = attendees.filter(attendees["CODE"] == verification_code).filter(attendees["ATTENDED"] == False)
     if len(filtered_attendee.collect()) > 0:
-        attendee_id = filtered_attendee.collect()[0]["attendee_id"]
+        attendee_id = filtered_attendee.collect()[0]["ATTENDEE_ID"]  # Assuming "ATTENDEE_ID" is the correct column name
         attendees.write \
             .overwrite() \
-            .filter(attendees["code"] == verification_code) \
-            .filter(attendees["attended"] == False) \
-            .set("attended", True)
+            .filter(attendees["CODE"] == verification_code) \
+            .filter(attendees["ATTENDED"] == False) \
+            .set("ATTENDED", True)
         return attendee_id
     else:
         return None
+
 # Streamlit app
 st.title('Event Attendance Verification')
 verification_code = st.text_input('Enter Verification Code:')
