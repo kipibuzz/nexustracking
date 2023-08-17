@@ -51,7 +51,14 @@ if st.button('Verify'):
             st.error(result_message)
 
 # Display event statistics
-conn_stats = snowflake.connector.connect(CONNECTION_PARAMETERS)
+conn_stats = snowflake.connector.connect(
+        user=CONNECTION_PARAMETERS['user'],
+        password=CONNECTION_PARAMETERS['password'],
+        account=CONNECTION_PARAMETERS['account'],
+        warehouse=CONNECTION_PARAMETERS['warehouse'],
+        database=CONNECTION_PARAMETERS['database'],
+        schema=CONNECTION_PARAMETERS['schema']
+    )
 cursor_stats = conn_stats.cursor()
 cursor_stats.execute("SELECT * FROM EVENT_STATISTICS")
 statistics = cursor_stats.fetchall()
