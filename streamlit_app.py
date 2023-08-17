@@ -25,6 +25,7 @@ def verify_and_mark_attendance(verification_code):
     )
     cursor = conn.cursor()
 
+    # Check if attendee exists and has not attended
     cursor.execute(
         f"SELECT ATTENDEE_ID, ATTENDED FROM EMP WHERE CODE = '{verification_code}'"
     )
@@ -34,6 +35,7 @@ def verify_and_mark_attendance(verification_code):
         if attended:
             message = f'Attendance already marked for Attendee ID: {attendee_id}'
         else:
+            # Mark attendance
             cursor.execute(
                 f"UPDATE EMP SET ATTENDED = TRUE WHERE ATTENDEE_ID = '{attendee_id}'"
             )
@@ -47,12 +49,9 @@ def verify_and_mark_attendance(verification_code):
     return message
 
 # Streamlit app
-st.set_page_config(
-    page_title="Event Attendance App",
-    layout="wide"
-)
-
 st.title('Event Attendance Verification')
+
+# Page 1: Verification Page
 verification_code = st.text_input('Enter Verification Code:')
 if st.button('Verify'):
     if verification_code:
@@ -62,7 +61,8 @@ if st.button('Verify'):
         else:
             st.error(result_message)
 
-# Display event statistics
+# Page 2: Graph Page
+st.title('Attendance Statistics')
 conn_stats = snowflake.connector.connect(
         user=CONNECTION_PARAMETERS['user'],
         password=CONNECTION_PARAMETERS['password'],
@@ -72,29 +72,15 @@ conn_stats = snowflake.connector.connect(
         schema=CONNECTION_PARAMETERS['schema']
     )
 cursor_stats = conn_stats.cursor()
-cursor_stats.execute("SELECT EVENT_DATE, TOTAL_VERIFIED, TOTAL_ATTENDED FROM EVENT_STATISTICS")
+cursor_stats.execute("SELECT * FROM EVENT_STATISTICS")
 statistics = cursor_stats.fetchall()
 cursor_stats.close()
 conn_stats.close()
 
-# Create a DataFrame for the statistics
-statistics_df = pd.DataFrame(statistics, columns=['Event Date', 'Total Verified', 'Total Attended'])
+# Creating a DataFrame for the statistics
+df_statistics = pd.DataFrame(statistics, columns=["EVENT_DATE", "TOTAL_VERIFIED", "TOTAL_ATTENDED"])
+st.dataframe(df_statistics)
 
-# Display the statistics DataFrame
-st.write(statistics_df)
-
-# Display an interactive line chart for statistics using Plotly
-fig = px.line(statistics_df, x='Event Date', y=['Total Verified', 'Total Attended'], title='Event Verification and Attendance')
+# Creating an interactive line chart using Plotly
+fig = px.line(df_statistics, x='EVENT_DATE', y=['TOTAL_VERIFIED', 'TOTAL_ATTENDED'], title='Attendance Trends')
 st.plotly_chart(fig)
-
-# Display additional KPIs
-st.title('Key Performance Indicators')
-total_events = len(statistics_df)
-total_verified = statistics_df['Total Verified'].sum()
-total_attended = statistics_df['Total Attended'].sum()
-attendance_rate = (total_attended / total_verified) * 100 if total_verified != 0 else 0
-
-st.markdown(f"Total Events: **{total_events}**")
-st.markdown(f"Total Verified: **{total_verified}**")
-st.markdown(f"Total Attended: **{total_attended}**")
-st.markdown(f"Attendance Rate: **{attendance_rate:.2f}%**")
