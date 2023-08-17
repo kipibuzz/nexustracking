@@ -43,6 +43,9 @@ session = Session.builder.configs(CONNECTION_PARAMETERS).create()
 # ... (import statements and Snowflake configuration)
 
 # Verify the code and mark attendance
+# ... (import statements and Snowflake configuration)
+
+# Verify the code and mark attendance
 def verify_and_mark_attendance(verification_code):
     attendees = session.read.table("EMP")
     filtered_attendee = attendees.filter(attendees["CODE"] == verification_code).filter(~attendees["ATTENDED"])
@@ -51,7 +54,7 @@ def verify_and_mark_attendance(verification_code):
         
         # Mark attendee as attended using the DataFrame API
         attendees_to_update = attendees.filter(attendees["CODE"] == verification_code).filter(~attendees["ATTENDED"])
-        attendees_to_update = attendees_to_update.withColumn("ATTENDED", attendees_to_update["ATTENDED"].expr(True))
+        attendees_to_update = attendees_to_update.withColumn("ATTENDED", True)
         
         # Update the attendee table by merging the changes
         attendees.merge(attendees_to_update, on=["ATTENDEE_ID"])
@@ -87,3 +90,4 @@ st.write(attendees)
 # Display event statistics
 statistics = session.read.table("EVENT_STATISTICS")
 st.write(statistics)
+
