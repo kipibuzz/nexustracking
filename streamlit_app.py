@@ -25,9 +25,10 @@ def verify_and_mark_attendance(verification_code):
         attendee_id = filtered_attendee.collect()[0]["ATTENDEE_ID"]
         
         # Update the attendance status using Snowflake SQL
-        session.execute(
+        query = (
             f"UPDATE EMP SET ATTENDED = TRUE WHERE ATTENDEE_ID = '{attendee_id}'"
         )
+        session.execute_query(query)
         
         return attendee_id
     else:
