@@ -44,6 +44,7 @@ session = Session.builder.configs(CONNECTION_PARAMETERS).create()
         return None
 
 
+
 # Streamlit app
 st.title('Event Attendance Verification')
 verification_code = st.text_input('Enter Verification Code:')
