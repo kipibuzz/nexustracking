@@ -85,7 +85,7 @@ def generate_attendance_statistics(data):
 # Streamlit app
 st.title('NexusPassCheck')
 background_image_url = "https://www.linkpicture.com/q/nexus-background.jpg"
-st.image(background_image_url, use_container_width=True)
+st.image(background_image_url)
 
 # Apply custom CSS for background using st.markdown
 css = """
@@ -97,6 +97,9 @@ body {
 }
 </style>
 """
+st.markdown(css, unsafe_allow_html=True)
+
+# ... (rest of your code)
 
 # Custom menu options with emojis
 menu_choices = {
