@@ -30,7 +30,7 @@ session = Session.builder.configs(CONNECTION_PARAMETERS).create()
  
 # Verify the code and mark attendance
 def verify_and_mark_attendance(verification_code):
-    attendees = session.read.table("NEXUS.ATTENDENCE.EMP")
+    attendees = session.read.table("EMP")
     filtered_attendee = attendees.filter(attendees["CODE"] == verification_code).filter(~attendees["ATTENDED"])
     if len(filtered_attendee.collect()) > 0:
         attendee_id = filtered_attendee.collect()[0]["ATTENDEE_ID"]
@@ -42,6 +42,7 @@ def verify_and_mark_attendance(verification_code):
         return attendee_id
     else:
         return None
+
 
 
 
