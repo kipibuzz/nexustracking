@@ -8,51 +8,43 @@ from snowflake.snowpark.session import Session
 import streamlit as st
 import pandas as pd
 
-# import streamlit as st
-# import snowflake.connector
-
-# Snowflake connection parameters
+# snowpark connection
 CONNECTION_PARAMETERS = {
-    "account": st.secrets['account'],
+    "account": st.secrets['account'], 
     "user": st.secrets['user'],
     "password": st.secrets['password'],
     "database": st.secrets['database'],
     "schema": st.secrets['schema'],
-    "warehouse": st.secrets['warehouse'],
+    "warehouse": st.secrets['warehouse'], 
 }
 
-# Create Snowflake connection
-conn = snowflake.connector.connect(**CONNECTION_PARAMETERS)
+# create session
+session = Session.builder.configs(CONNECTION_PARAMETERS).create()
 
 # Verify the code and mark attendance
 def verify_and_mark_attendance(verification_code):
-    cursor = conn.cursor()
-
-    # Perform the necessary SQL operations to update attendees and event statistics
-    try:
-        cursor.execute(
-            f"UPDATE EMP SET ATTENDED = TRUE WHERE CODE = '{verification_code}' AND NOT ATTENDED"
-        )
-
-        cursor.execute(
-            f"UPDATE EVENT_STATISTICS SET TOTAL_VERIFIED = TOTAL_VERIFIED + 1, TOTAL_ATTENDED = TOTAL_ATTENDED + 1 WHERE EVENT_DATE = CURRENT_DATE()"
-        )
-
-        conn.commit()
-        return True
-    except snowflake.connector.errors.DatabaseError as e:
-        print("Error:", e)
-        conn.rollback()
-        return False
-    finally:
-        cursor.close()
+    attendees = session.read.table("EMP")
+    filtered_attendee = attendees.filter(attendees["CODE"] == verification_code).filter(~attendees["ATTENDED"])
+    if len(filtered_attendee.collect()) > 0:
+        attendee_id = filtered_attendee.collect()[0]["ATTENDEE_ID"]
+        attendees_to_update = attendees.withColumn("ATTENDED", True).filter(attendees["ATTENDEE_ID"] == attendee_id)
+        attendees_to_update.write.overwrite()
+        return attendee_id
+    else:
+        return None
 
 # Streamlit app
 st.title('Event Attendance Verification')
 verification_code = st.text_input('Enter Verification Code:')
 if st.button('Verify'):
     if verification_code:
-        if verify_and_mark_attendance(verification_code):
-            st.success(f'Code verified successfully! They are marked as attended.')
+        attendee_id = verify_and_mark_attendance(verification_code)
+        if attendee_id is not None:
+            st.success(f'Code verified successfully for Attendee ID: {attendee_id}! They are marked as attended.')
+            # Increment statistics in Event_Statistics table
+            session.execute(
+                f"UPDATE EVENT_STATISTICS SET TOTAL_VERIFIED = TOTAL_VERIFIED + 1, TOTAL_ATTENDED = TOTAL_ATTENDED + 1 WHERE EVENT_DATE = CURRENT_DATE()"
+            )
         else:
-            st.error('Invalid code or code already used.')
+            st.error('Invalid code.')
+
