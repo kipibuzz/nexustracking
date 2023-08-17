@@ -83,7 +83,7 @@ def generate_attendance_statistics(data):
 
 
 # Streamlit app
-st.title('NEXUS Attendance Management')
+st.title('NexusPassCheck')
 
 # Custom menu options with emojis
 menu_choices = {
