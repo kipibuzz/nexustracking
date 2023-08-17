@@ -10,10 +10,10 @@ import pandas as pd
 
 # snowpark connection
 CONNECTION_PARAMETERS = {
-    "account": st.secrets['account'], 
+   "account": st.secrets['account'], 
    "user": st.secrets['user'],
    "password": st.secrets['password'],
-    "database": st.secrets['database'],
+   "database": st.secrets['database'],
    "schema": st.secrets['schema'],
    "warehouse": st.secrets['warehouse'], 
 }
@@ -33,8 +33,12 @@ session = Session.builder.configs(CONNECTION_PARAMETERS).create()
 # ... (import statements and Snowflake configuration)
 
 # Verify the code and mark attendance
+
+# ... (import statements and Snowflake configuration)
+
+# Verify the code and mark attendance
 def verify_and_mark_attendance(verification_code):
-    attendees = session.read.table("NEXUS.ATTENDENCE.EMP")  # Adjust the schema name
+    attendees = session.read.table("EMP")
     filtered_attendee = attendees.filter(attendees["CODE"] == verification_code).filter(~attendees["ATTENDED"])
     if len(filtered_attendee.collect()) > 0:
         attendee_id = filtered_attendee.collect()[0]["ATTENDEE_ID"]
@@ -47,7 +51,7 @@ def verify_and_mark_attendance(verification_code):
             .set("ATTENDED", True)
         
         # Update event statistics
-        session.read.table("NEXUS.ATTENDENCE.EVENT_STATISTICS").write \
+        session.read.table("EVENT_STATISTICS").write \
             .overwrite() \
             .filter("EVENT_DATE = CURRENT_DATE()") \
             .set("TOTAL_VERIFIED", "TOTAL_VERIFIED + 1") \
@@ -69,9 +73,9 @@ if st.button('Verify'):
             st.error('Invalid code or code already used.')
 
 # Display the attendee table
-attendees = session.read.table("NEXUS.ATTENDENCE.EMP")  # Adjust the schema name
+attendees = session.read.table("EMP")
 st.write(attendees)
 
 # Display event statistics
-statistics = session.read.table("NEXUS.ATTENDENCE.EVENT_STATISTICS")  # Adjust the schema name
+statistics = session.read.table("EVENT_STATISTICS")
 st.write(statistics)
