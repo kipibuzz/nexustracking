@@ -1,7 +1,7 @@
 import streamlit as st
 import snowflake.connector
-import matplotlib.pyplot as plt
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # Snowflake connection parameters
 CONNECTION_PARAMETERS = {
@@ -48,24 +48,9 @@ def verify_and_mark_attendance(verification_code):
     conn.close()
     return message
 
-# Streamlit app
-st.set_page_config(
-    page_title="Event Attendance App",
-    layout="wide"
-)
-
-st.title('Event Attendance Verification')
-verification_code = st.text_input('Enter Verification Code:')
-if st.button('Verify'):
-    if verification_code:
-        result_message = verify_and_mark_attendance(verification_code)
-        if 'successfully' in result_message:
-            st.success(result_message)
-        else:
-            st.error(result_message)
-
-# Display event statistics
-conn_stats = snowflake.connector.connect(
+# Function to query attendance data
+def query_attendance_data():
+    conn = snowflake.connector.connect(
         user=CONNECTION_PARAMETERS['user'],
         password=CONNECTION_PARAMETERS['password'],
         account=CONNECTION_PARAMETERS['account'],
@@ -73,20 +58,74 @@ conn_stats = snowflake.connector.connect(
         database=CONNECTION_PARAMETERS['database'],
         schema=CONNECTION_PARAMETERS['schema']
     )
-cursor_stats = conn_stats.cursor()
-cursor_stats.execute("SELECT * FROM EVENT_STATISTICS")
-statistics = cursor_stats.fetchall()
-cursor_stats.close()
-conn_stats.close()
+    cursor = conn.cursor()
 
-# Display statistics
-st.title('Event Statistics')
+    # Query attendance data
+    cursor.execute("SELECT ATTENDEE_ID, ATTENDED FROM EMP")
+    data = cursor.fetchall()
 
-# Create a DataFrame for the statistics
-statistics_df = pd.DataFrame(statistics, columns=['Event Date', 'Total Verified', 'Total Attended'])
-st.write(statistics_df)
+    cursor.close()
+    conn.close()
+    return data
 
-# Display a bar chart for statistics
-fig, ax = plt.subplots()
-statistics_df.plot(x='Event Date', y=['Total Verified', 'Total Attended'], kind='bar', ax=ax)
-st.pyplot(fig)
+# Function to generate attendance statistics
+def generate_attendance_statistics(data):
+    total_attendees = len(data)
+    total_attended = sum(1 for _, attended in data if attended)
+    total_not_attended = total_attendees - total_attended
+    return {
+        "Total Attendees": total_attendees,
+        "Total Attended": total_attended,
+        "Total Not Attended": total_not_attended,
+    }
+
+# Streamlit app
+st.title('Event Attendance Management')
+
+# Navigation menu
+menu_choice = st.sidebar.radio("Select Page", ["Verify Attendance", "Attendance Statistics"])
+
+if menu_choice == "Verify Attendance":
+    # Verify attendance page
+    st.header('Verify Attendance')
+    verification_code = st.text_input('Enter Verification Code:')
+    if st.button('Verify'):
+        if verification_code:
+            result_message = verify_and_mark_attendance(verification_code)
+            if 'successfully' in result_message:
+                st.success(result_message)
+            else:
+                st.error(result_message)
+
+ 
+
+elif menu_choice == "Attendance Statistics":
+    # Attendance statistics page
+    st.header('Attendance Statistics')
+
+    # Query attendance data
+    attendance_data = query_attendance_data()
+
+    # Generate statistics
+    statistics = generate_attendance_statistics(attendance_data)
+
+    # Display statistics
+    st.subheader('Overall Attendance Statistics')
+    st.write(statistics)
+
+    # Create a bar chart using Matplotlib
+    df = pd.DataFrame.from_records(attendance_data, columns=["ATTENDEE_ID", "ATTENDED"])
+    df["ATTENDED"] = df["ATTENDED"].apply(lambda x: "Attended" if x else "Not Attended")
+
+    plt.figure(figsize=(8, 6))
+    df_grouped = df.groupby("ATTENDED").size().reset_index(name="Count")
+    plt.bar(df_grouped["ATTENDED"], df_grouped["Count"], color=["green", "red"])
+    plt.xlabel("Attendance Status")
+    plt.ylabel("Count")
+    plt.title("Attendance Status Breakdown")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+
+    st.subheader('Attendance Status Breakdown')
+    st.pyplot(plt)
+
