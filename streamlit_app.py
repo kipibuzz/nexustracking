@@ -82,7 +82,7 @@ def generate_attendance_statistics(data):
     }
 
 # Streamlit app
-st.title('Event Attendance Management')
+st.title('NEXUS Attendance Management')
 
 # Navigation menu
 menu_choice = st.sidebar.radio("Select Page", ["Verify Attendance", "Attendance Statistics"])
