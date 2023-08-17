@@ -1,7 +1,8 @@
+# Import necessary libraries
 import streamlit as st
 import snowflake.connector
+import matplotlib.pyplot as plt
 import pandas as pd
-import plotly.express as px
 
 # Snowflake connection parameters
 CONNECTION_PARAMETERS = {
@@ -14,27 +15,8 @@ CONNECTION_PARAMETERS = {
 }
 
 # Function to verify and mark attendance
-# ... (same as before)
-
-# Streamlit app
-st.set_page_config(page_title='Event Attendance Tracking', layout='wide')
-st.title('Event Attendance Tracking')
-
-menu = ['Attendance Verification', 'Attendance Statistics']
-choice = st.sidebar.selectbox("Select Option", menu)
-
-if choice == 'Attendance Verification':
-    verification_code = st.text_input('Enter Verification Code:')
-    if st.button('Verify'):
-        if verification_code:
-            result_message = verify_and_mark_attendance(verification_code)
-            if 'successfully' in result_message:
-                st.success(result_message)
-            else:
-                st.error(result_message)
-
-elif choice == 'Attendance Statistics':
-    conn_stats = snowflake.connector.connect(
+def verify_and_mark_attendance(verification_code):
+    conn = snowflake.connector.connect(
         user=CONNECTION_PARAMETERS['user'],
         password=CONNECTION_PARAMETERS['password'],
         account=CONNECTION_PARAMETERS['account'],
@@ -42,26 +24,63 @@ elif choice == 'Attendance Statistics':
         database=CONNECTION_PARAMETERS['database'],
         schema=CONNECTION_PARAMETERS['schema']
     )
-    cursor_stats = conn_stats.cursor()
-    cursor_stats.execute("SELECT * FROM EVENT_STATISTICS")
-    statistics = cursor_stats.fetchall()
-    df_statistics = pd.DataFrame(statistics, columns=['EVENT_DATE', 'TOTAL_VERIFIED', 'TOTAL_ATTENDED'])
-    df_statistics['ATTENDANCE_RATE'] = (df_statistics['TOTAL_ATTENDED'] / df_statistics['TOTAL_VERIFIED']) * 100
+    cursor = conn.cursor()
 
-    # Display metrics
-    st.subheader('Attendance Statistics')
-    st.write(df_statistics)
+    # ... (Same as before)
 
-    # Display interactive line chart using Plotly
-    fig_statistics = px.line(df_statistics, x='EVENT_DATE', y=['TOTAL_VERIFIED', 'TOTAL_ATTENDED'],
-                              title='Attendance Statistics')
-    st.plotly_chart(fig_statistics)
+# Streamlit app
+st.set_page_config(
+    page_title="Event Attendance App",
+    layout="wide"
+)
 
-    # Display interactive bar chart for attendance rate
-    fig_attendance_rate = px.bar(df_statistics, x='EVENT_DATE', y='ATTENDANCE_RATE',
-                                  title='Attendance Rate')
-    fig_attendance_rate.update_layout(yaxis_title='Attendance Rate (%)')
-    st.plotly_chart(fig_attendance_rate)
+st.title('Event Attendance Verification')
 
-    cursor_stats.close()
-    conn_stats.close()
+# ... (Same as before)
+
+# Display a bar chart for statistics
+st.title('Event Statistics')
+
+# ... (Same as before)
+
+# Create a DataFrame for the statistics
+statistics_df = pd.DataFrame(statistics, columns=['Event Date', 'Total Verified', 'Total Attended'])
+
+# Display the statistics DataFrame
+st.write(statistics_df)
+
+# Display a bar chart for statistics
+fig, ax = plt.subplots()
+statistics_df.plot(x='Event Date', y=['Total Verified', 'Total Attended'], kind='bar', ax=ax)
+plt.xlabel('Event Date')
+plt.ylabel('Count')
+plt.title('Event Verification and Attendance')
+st.pyplot(fig)
+
+# Display a line chart for attendance trend
+st.title('Attendance Trend')
+
+# ... (Same as before)
+
+# Create a DataFrame for the attendance trend
+trend_df = pd.DataFrame(trend_data, columns=['Event Date', 'Attended'])
+
+# Display the attendance trend DataFrame
+st.write(trend_df)
+
+# Display a line chart for attendance trend
+fig, ax = plt.subplots()
+trend_df.plot(x='Event Date', y='Attended', kind='line', ax=ax)
+plt.xlabel('Event Date')
+plt.ylabel('Attended Count')
+plt.title('Attendance Trend')
+st.pyplot(fig)
+
+# Display additional KPIs
+st.title('Additional KPIs')
+
+# Calculate and display additional KPIs
+avg_attendance_rate = trend_df['Attended'].mean()
+st.write('Average Attendance Rate:', avg_attendance_rate)
+
+# ... (Add more additional KPIs as needed)
