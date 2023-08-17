@@ -49,38 +49,65 @@ def verify_and_mark_attendance(verification_code):
     return message
 
 # Streamlit app
-st.title('Event Attendance Verification')
+st.set_page_config(page_title='Attendance Verification App', layout='wide')
+
+# Sidebar navigation
+menu = ["Verification", "Attendance Statistics", "Attendance Trends"]
+choice = st.sidebar.selectbox("Select Option", menu)
 
 # Page 1: Verification Page
-verification_code = st.text_input('Enter Verification Code:')
-if st.button('Verify'):
-    if verification_code:
-        result_message = verify_and_mark_attendance(verification_code)
-        if 'successfully' in result_message:
-            st.success(result_message)
-        else:
-            st.error(result_message)
+if choice == "Verification":
+    st.title('Event Attendance Verification')
+    verification_code = st.text_input('Enter Verification Code:')
+    if st.button('Verify'):
+        if verification_code:
+            result_message = verify_and_mark_attendance(verification_code)
+            if 'successfully' in result_message:
+                st.success(result_message)
+            else:
+                st.error(result_message)
 
-# Page 2: Graph Page
-st.title('Attendance Statistics')
-conn_stats = snowflake.connector.connect(
-        user=CONNECTION_PARAMETERS['user'],
-        password=CONNECTION_PARAMETERS['password'],
-        account=CONNECTION_PARAMETERS['account'],
-        warehouse=CONNECTION_PARAMETERS['warehouse'],
-        database=CONNECTION_PARAMETERS['database'],
-        schema=CONNECTION_PARAMETERS['schema']
-    )
-cursor_stats = conn_stats.cursor()
-cursor_stats.execute("SELECT * FROM EVENT_STATISTICS")
-statistics = cursor_stats.fetchall()
-cursor_stats.close()
-conn_stats.close()
+# Page 2: Attendance Statistics
+if choice == "Attendance Statistics":
+    st.title('Attendance Statistics')
+    conn_stats = snowflake.connector.connect(
+            user=CONNECTION_PARAMETERS['user'],
+            password=CONNECTION_PARAMETERS['password'],
+            account=CONNECTION_PARAMETERS['account'],
+            warehouse=CONNECTION_PARAMETERS['warehouse'],
+            database=CONNECTION_PARAMETERS['database'],
+            schema=CONNECTION_PARAMETERS['schema']
+        )
+    cursor_stats = conn_stats.cursor()
+    cursor_stats.execute("SELECT * FROM EVENT_STATISTICS")
+    statistics = cursor_stats.fetchall()
+    cursor_stats.close()
+    conn_stats.close()
 
-# Creating a DataFrame for the statistics
-df_statistics = pd.DataFrame(statistics, columns=["EVENT_DATE", "TOTAL_VERIFIED", "TOTAL_ATTENDED"])
-st.dataframe(df_statistics)
+    # Creating a DataFrame for the statistics
+    df_statistics = pd.DataFrame(statistics, columns=["EVENT_DATE", "TOTAL_VERIFIED", "TOTAL_ATTENDED"])
+    st.dataframe(df_statistics)
 
-# Creating an interactive line chart using Plotly
-fig = px.line(df_statistics, x='EVENT_DATE', y=['TOTAL_VERIFIED', 'TOTAL_ATTENDED'], title='Attendance Trends')
-st.plotly_chart(fig)
+# Page 3: Attendance Trends
+if choice == "Attendance Trends":
+    st.title('Attendance Trends')
+    conn_trends = snowflake.connector.connect(
+            user=CONNECTION_PARAMETERS['user'],
+            password=CONNECTION_PARAMETERS['password'],
+            account=CONNECTION_PARAMETERS['account'],
+            warehouse=CONNECTION_PARAMETERS['warehouse'],
+            database=CONNECTION_PARAMETERS['database'],
+            schema=CONNECTION_PARAMETERS['schema']
+        )
+    cursor_trends = conn_trends.cursor()
+    cursor_trends.execute("SELECT * FROM EVENT_STATISTICS")
+    trends = cursor_trends.fetchall()
+    cursor_trends.close()
+    conn_trends.close()
+
+    # Creating a DataFrame for the trends
+    df_trends = pd.DataFrame(trends, columns=["EVENT_DATE", "TOTAL_VERIFIED", "TOTAL_ATTENDED"])
+    
+    # Creating an interactive line chart using Plotly
+    fig_trends = px.line(df_trends, x='EVENT_DATE', y=['TOTAL_VERIFIED', 'TOTAL_ATTENDED'], title='Attendance Trends')
+    st.plotly_chart(fig_trends)
