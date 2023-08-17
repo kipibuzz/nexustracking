@@ -13,3 +13,4 @@ pinecone-client
 sqlalchemy
 faiss-cpu
 plotly
+numpy
