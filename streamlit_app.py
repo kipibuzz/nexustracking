@@ -29,8 +29,8 @@ session = Session.builder.configs(CONNECTION_PARAMETERS).create()
 # st.write(attendees)
  
 # Verify the code and mark attendance
-def verify_and_mark_attendance(verification_code):
-    attendees = session.read.table("EMP")
+ def verify_and_mark_attendance(verification_code):
+    attendees = session.read.table("NEXUS.ATTENDENCE.EMP")  # Correct schema and table name
     filtered_attendee = attendees.filter(attendees["CODE"] == verification_code).filter(attendees["ATTENDED"] == False)
     if len(filtered_attendee.collect()) > 0:
         attendee_id = filtered_attendee.collect()[0]["ATTENDEE_ID"]  # Assuming "ATTENDEE_ID" is the correct column name
@@ -43,6 +43,7 @@ def verify_and_mark_attendance(verification_code):
     else:
         return None
 
+
 # Streamlit app
 st.title('Event Attendance Verification')
 verification_code = st.text_input('Enter Verification Code:')
@@ -52,9 +53,9 @@ if st.button('Verify'):
         if attendee_id is not None:
             st.success(f'Code verified successfully for Attendee ID: {attendee_id}! They are marked as attended.')
             # Increment statistics in Event_Statistics table
-            session.execute(
-                f"UPDATE Event_Statistics SET total_verified = total_verified + 1, total_attended = total_attended + 1 WHERE event_date = CURRENT_DATE()"
-            )
+           session.execute(
+    f"UPDATE NEXUS.ATTENDENCE.EVENT_STATISTICS SET TOTAL_VERIFIED = TOTAL_VERIFIED + 1, TOTAL_ATTENDED = TOTAL_ATTENDED + 1 WHERE EVENT_DATE = CURRENT_DATE()"
+)
         else:
             st.error('Invalid code or code already used.')
 # # Display the attendee table
