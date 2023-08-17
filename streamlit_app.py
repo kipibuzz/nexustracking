@@ -11,12 +11,9 @@ CONNECTION_PARAMETERS = {
     "warehouse": st.secrets['warehouse'],
 }
 
-# Create Snowflake connection
-
-
 # Function to verify and mark attendance
 def verify_and_mark_attendance(verification_code):
-    conn = snowflake.connector.connect(CONNECTION_PARAMETERS)
+    conn = snowflake.connector.connect(**CONNECTION_PARAMETERS)
     cursor = conn.cursor()
 
     # Check if attendee exists and has not attended
@@ -33,8 +30,12 @@ def verify_and_mark_attendance(verification_code):
         )
         conn.commit()
 
+        cursor.close()
+        conn.close()
         return attendee_id
     else:
+        cursor.close()
+        conn.close()
         return None
 
 # Streamlit app
@@ -48,14 +49,11 @@ if st.button('Verify'):
         else:
             st.error('Invalid code or attendance already marked.')
 
-# Close Snowflake connection
-conn.close()
-
 # Display event statistics
-conn = snowflake.connector.connect(**CONNECTION_PARAMETERS)
-cursor = conn.cursor()
-cursor.execute("SELECT * FROM EVENT_STATISTICS")
-statistics = cursor.fetchall()
+conn_stats = snowflake.connector.connect(**CONNECTION_PARAMETERS)
+cursor_stats = conn_stats.cursor()
+cursor_stats.execute("SELECT * FROM EVENT_STATISTICS")
+statistics = cursor_stats.fetchall()
 st.write(statistics)
-cursor.close()
-conn.close()
+cursor_stats.close()
+conn_stats.close()
