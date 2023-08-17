@@ -4,7 +4,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 # Snowflake connection parameters
 CONNECTION_PARAMETERS = {
     "account": st.secrets['account'], 
@@ -49,6 +48,7 @@ def verify_and_mark_attendance(verification_code):
     cursor.close()
     conn.close()
     return message
+    
 
 # Function to query attendance data
 def query_attendance_data():
@@ -81,13 +81,18 @@ def generate_attendance_statistics(data):
         "Total Not Attended": total_not_attended,
     }
 
+
 # Streamlit app
 st.title('NEXUS Attendance Management')
 
-# Navigation menu
-menu_choice = st.sidebar.radio("Select Page", ["Verify Attendance", "Attendance Statistics"])
+# Custom menu options with emojis
+menu_choices = {
+    "Verify Attendance": "✅ Verify Attendance",
+    "Attendance Statistics": "📊 Attendance Statistics"
+}
+menu_choice = st.sidebar.radio("Select Page", list(menu_choices.values()))
 
-if menu_choice == "Verify Attendance":
+if menu_choice == menu_choices["Verify Attendance"]:
     # Verify attendance page
     st.header('Verify Attendance')
     verification_code = st.text_input('Enter Verification Code:')
@@ -95,15 +100,11 @@ if menu_choice == "Verify Attendance":
         if verification_code:
             result_message = verify_and_mark_attendance(verification_code)
             if 'successfully' in result_message:
-                st.success(result_message)
+                st.success(result_message + " ✅")
             else:
-                st.error(result_message)
-
- 
-
-# 
-
-elif menu_choice == "Attendance Statistics":
+                st.error(result_message + " ❌")
+                
+elif menu_choice == menu_choices["Attendance Statistics"]:
     # Attendance statistics page
     st.header('Attendance Statistics')
 
@@ -144,10 +145,3 @@ elif menu_choice == "Attendance Statistics":
     
     # Display the pie chart
     st.pyplot(plt)
-
-
-
-
-
-
-
