@@ -1,6 +1,5 @@
 import streamlit as st
 import snowflake.connector
-from snowflake.connector.pandas_tools import write_pandas
 from snowflake.snowpark.session import Session
 
 # Snowflake connection parameters
@@ -23,9 +22,9 @@ def verify_and_mark_attendance(verification_code):
 
     if len(attendee) > 0 and not attendee[0]["ATTENDED"]:
         attendee_id = attendee[0]["ATTENDEE_ID"]
-        attendees_to_update = attendees.filter(attendees["ATTENDEE_ID"] == attendee_id)
-        attendees_to_update = attendees_to_update.withColumn("ATTENDED", True)
-        attendees_to_update.collect()  # Materialize the update
+        session.execute(
+            f"UPDATE EMP SET ATTENDED = TRUE WHERE ATTENDEE_ID = '{attendee_id}'"
+        )
         return attendee_id
     else:
         return None
