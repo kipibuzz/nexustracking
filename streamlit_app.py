@@ -57,7 +57,7 @@ if st.button('Verify'):
             st.success(f'Code verified successfully for Attendee ID: {attendee_id}! They are marked as attended.')
             # Increment statistics in Event_Statistics table
             session.execute(
-    f"UPDATE NEXUS.ATTENDENCE.EVENT_STATISTICS SET TOTAL_VERIFIED = TOTAL_VERIFIED + 1, TOTAL_ATTENDED = TOTAL_ATTENDED + 1 WHERE EVENT_DATE = CURRENT_DATE()"
+    f"UPDATE EVENT_STATISTICS SET TOTAL_VERIFIED = TOTAL_VERIFIED + 1, TOTAL_ATTENDED = TOTAL_ATTENDED + 1 WHERE EVENT_DATE = CURRENT_DATE()"
 )
 
         else:
@@ -66,6 +66,6 @@ if st.button('Verify'):
 attendees = session.read.table("EMP")
 #st.write(attendees)
 # Display event statistics
-statistics = session.read.table("Event_Statistics")
+statistics = session.read.table("EVENT_STATISTICS")
 st.write(statistics)
 
