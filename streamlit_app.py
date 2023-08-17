@@ -29,7 +29,7 @@ session = Session.builder.configs(CONNECTION_PARAMETERS).create()
 # st.write(attendees)
  
 # Verify the code and mark attendance
- def verify_and_mark_attendance(verification_code):
+def verify_and_mark_attendance(verification_code):
     attendees = session.read.table("NEXUS.ATTENDENCE.EMP")  # Correct schema and table name
     filtered_attendee = attendees.filter(attendees["CODE"] == verification_code).filter(attendees["ATTENDED"] == False)
     if len(filtered_attendee.collect()) > 0:
