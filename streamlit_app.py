@@ -37,6 +37,9 @@ session = Session.builder.configs(CONNECTION_PARAMETERS).create()
 # ... (import statements and Snowflake configuration)
 
 # Verify the code and mark attendance
+# ... (import statements and Snowflake configuration)
+
+# Verify the code and mark attendance
 def verify_and_mark_attendance(verification_code):
     attendees = session.read.table("EMP")
     filtered_attendee = attendees.filter(attendees["CODE"] == verification_code).filter(~attendees["ATTENDED"])
@@ -44,18 +47,20 @@ def verify_and_mark_attendance(verification_code):
         attendee_id = filtered_attendee.collect()[0]["ATTENDEE_ID"]
         
         # Mark attendee as attended using the DataFrame API
-        attendees.write \
-            .overwrite() \
-            .filter(attendees["CODE"] == verification_code) \
-            .filter(~attendees["ATTENDED"]) \
-            .set("ATTENDED", True)
+        attendees_to_update = attendees.filter(attendees["CODE"] == verification_code).filter(~attendees["ATTENDED"])
+        attendees_to_update = attendees_to_update.withColumn("ATTENDED", True)
+        
+        # Update the attendee table by merging the changes
+        attendees.merge(attendees_to_update, on=["ATTENDEE_ID"])
         
         # Update event statistics
-        session.read.table("EVENT_STATISTICS").write \
-            .overwrite() \
-            .filter("EVENT_DATE = CURRENT_DATE()") \
-            .set("TOTAL_VERIFIED", "TOTAL_VERIFIED + 1") \
-            .set("TOTAL_ATTENDED", "TOTAL_ATTENDED + 1")
+        statistics = session.read.table("EVENT_STATISTICS")
+        statistics = statistics.filter("EVENT_DATE = CURRENT_DATE()")
+        statistics = statistics.withColumn("TOTAL_VERIFIED", statistics["TOTAL_VERIFIED"] + 1)
+        statistics = statistics.withColumn("TOTAL_ATTENDED", statistics["TOTAL_ATTENDED"] + 1)
+        
+        # Update the event statistics table by merging the changes
+        session.read.table("EVENT_STATISTICS").merge(statistics, on=["EVENT_DATE"])
         
         return attendee_id
     else:
