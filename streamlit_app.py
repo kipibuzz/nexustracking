@@ -105,6 +105,8 @@ if menu_choice == "Verify Attendance":
 
 # ... (existing code)
 
+# ... (existing code)
+
 elif menu_choice == "Attendance Statistics":
     # Attendance statistics page
     st.header('Attendance Statistics')
@@ -126,6 +128,15 @@ elif menu_choice == "Attendance Statistics":
         unsafe_allow_html=True
     )
     
+    # Add a divider to create separation
+    st.markdown("<hr style='border-top: 2px solid #ccc;'>", unsafe_allow_html=True)
+    
+    # Create a centered layout for the pie chart
+    st.write(
+        f"<div style='display: flex; justify-content: center; align-items: center;'>"
+        f"<div>"
+    )
+    
     # Create a pie chart for attendance breakdown
     plt.figure(figsize=(8, 6))
     plt.pie([total_attended, statistics['Total Not Attended']], labels=["Attended", "Not Attended"], autopct='%1.1f%%', colors=["#86bf91", "#e74c3c"])
@@ -133,6 +144,10 @@ elif menu_choice == "Attendance Statistics":
     plt.title("Attendance Breakdown", fontsize=16)
     
     st.pyplot(plt)
+    
+    # Close the centered layout div
+    st.write("</div></div>", unsafe_allow_html=True)
+
 
 
 
