@@ -111,12 +111,18 @@ elif menu_choice == "Attendance Statistics":
     st.subheader('Overall Attendance Statistics')
     st.write(statistics)
 
-    # Create a bar chart
+    # Create a bar chart using Matplotlib
     df = pd.DataFrame.from_records(attendance_data, columns=["ATTENDEE_ID", "ATTENDED"])
     df["ATTENDED"] = df["ATTENDED"].apply(lambda x: "Attended" if x else "Not Attended")
-    st.subheader('Attendance Status Breakdown')
-    chart = df["ATTENDED"].value_counts().plot(kind='bar')
-    st.pyplot(chart)
 
-# Close Snowflake connections (not shown in the code)
-# ...
+    plt.figure(figsize=(8, 6))
+    df_grouped = df.groupby("ATTENDED").size().reset_index(name="Count")
+    plt.bar(df_grouped["ATTENDED"], df_grouped["Count"], color=["green", "red"])
+    plt.xlabel("Attendance Status")
+    plt.ylabel("Count")
+    plt.title("Attendance Status Breakdown")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+
+    st.subheader('Attendance Status Breakdown')
+    st.pyplot(plt)
