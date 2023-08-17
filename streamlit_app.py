@@ -13,7 +13,14 @@ CONNECTION_PARAMETERS = {
 
 # Function to verify and mark attendance
 def verify_and_mark_attendance(verification_code):
-    conn = snowflake.connector.connect(CONNECTION_PARAMETERS)
+    conn = snowflake.connector.connect(
+        user=CONNECTION_PARAMETERS['user'],
+        password=CONNECTION_PARAMETERS['password'],
+        account=CONNECTION_PARAMETERS['account'],
+        warehouse=CONNECTION_PARAMETERS['warehouse'],
+        database=CONNECTION_PARAMETERS['database'],
+        schema=CONNECTION_PARAMETERS['schema']
+    )
     cursor = conn.cursor()
 
     # Check if attendee exists and has not attended
