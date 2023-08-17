@@ -99,13 +99,7 @@ if menu_choice == "Verify Attendance":
 
  
 
-# ... (existing code)
-
-# ... (existing code)
-
-# ... (existing code)
-
-# ... (existing code)
+# 
 
 elif menu_choice == "Attendance Statistics":
     # Attendance statistics page
@@ -117,20 +111,32 @@ elif menu_choice == "Attendance Statistics":
     # Generate statistics
     statistics = generate_attendance_statistics(attendance_data)
 
-    # Display attendance counts
     total_attended = statistics['Total Attended']
     total_not_attended = statistics['Total Not Attended']
     
-    st.write(f"Total Attendees: {statistics['Total Attendees']}")
-
-    st.write(f"**Total Attended:** {total_attended}", 
-             f"**Total Not Attended:** {total_not_attended}", 
-             unsafe_allow_html=True)
-             
+    # Create a bar-like visualization for attended and not attended
+    st.write(
+        f"<div style='display: flex; justify-content: space-between; align-items: center;'>"
+        f"<div style='text-align: center;'>"
+        f"<h2 style='font-size: 2.5rem; color: green;'>{total_attended}</h2>"
+        f"<p style='font-size: 1.5rem;'>Attended</p>"
+        f"</div>"
+        f"<div style='text-align: center;'>"
+        f"<h2 style='font-size: 2.5rem; color: red;'>{total_not_attended}</h2>"
+        f"<p style='font-size: 1.5rem;'>Not Attended</p>"
+        f"</div>"
+        f"</div>",
+        unsafe_allow_html=True
+    )
+    
     # Create a pie chart for attendance breakdown
     plt.figure(figsize=(6, 6))
     plt.pie(statistics.values(), labels=statistics.keys(), autopct='%1.1f%%', colors=["#86bf91", "#f1c40f", "#e74c3c"])
     plt.axis('equal')  # Equal aspect ratio ensures the pie is circular.
+    
+    st.subheader('Attendance Breakdown')
+    st.pyplot(plt)
+
     
     st.subheader('Attendance Breakdown')
     st.pyplot(plt)
