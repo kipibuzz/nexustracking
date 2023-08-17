@@ -99,6 +99,8 @@ if menu_choice == "Verify Attendance":
 
  
 
+# ... (existing code)
+
 elif menu_choice == "Attendance Statistics":
     # Attendance statistics page
     st.header('Attendance Statistics')
@@ -109,49 +111,19 @@ elif menu_choice == "Attendance Statistics":
     # Generate statistics
     statistics = generate_attendance_statistics(attendance_data)
 
-    # Display statistics
-    st.subheader('Overall Attendance Statistics')
-    st.write(statistics)
-
-    # Create a bar chart using Matplotlib
-    df = pd.DataFrame.from_records(attendance_data, columns=["ATTENDEE_ID", "ATTENDED"])
-    df["ATTENDED"] = df["ATTENDED"].apply(lambda x: "Attended" if x else "Not Attended")
-
-    plt.figure(figsize=(8, 6))
-    df_grouped = df.groupby("ATTENDED").size().reset_index(name="Count")
-    plt.bar(df_grouped["ATTENDED"], df_grouped["Count"], color=["green", "red"])
-    plt.xlabel("Attendance Status")
-    plt.ylabel("Count")
-    plt.title("Attendance Status Breakdown")
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-
-    st.subheader('Attendance Status Breakdown')
-    st.pyplot(plt)
-
-    # Display detailed attendee-wise attendance
-    st.subheader('Attendee-wise Attendance')
-    st.dataframe(df)  # Display the dataframe with attendee-wise attendance
+    # Display KPIs
+    st.subheader('Key Performance Indicators (KPIs)')
+    st.write(f"Total Attendees: {statistics['Total Attendees']}")
+    st.write(f"Total Attended: {statistics['Total Attended']}")
+    st.write(f"Total Not Attended: {statistics['Total Not Attended']}")
 
     # Create a pie chart for attendance breakdown
     plt.figure(figsize=(6, 6))
-    plt.pie(df_grouped["Count"], labels=df_grouped["ATTENDED"], autopct='%1.1f%%', colors=["green", "red"])
-    plt.title("Attendance Status Breakdown")
+    plt.pie(statistics.values(), labels=statistics.keys(), autopct='%1.1f%%', colors=["#86bf91", "#f1c40f", "#e74c3c"])
+    plt.title("Attendance Breakdown")
     plt.axis('equal')  # Equal aspect ratio ensures the pie is circular.
     
-    st.subheader('Attendance Status Breakdown (Pie Chart)')
-    st.pyplot(plt)
-
-    # Create a bar chart for exact attendance and not-attended
-    plt.figure(figsize=(6, 6))
-    plt.bar(["Attended", "Not Attended"], [statistics["Total Attended"], statistics["Total Not Attended"]], color=["green", "red"])
-    plt.xlabel("Attendance Status")
-    plt.ylabel("Count")
-    plt.title("Exact Attendance and Not-Attended")
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-
-    st.subheader('Exact Attendance and Not-Attended')
+    st.subheader('Attendance Breakdown')
     st.pyplot(plt)
 
 
