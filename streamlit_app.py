@@ -30,27 +30,9 @@ session = Session.builder.configs(CONNECTION_PARAMETERS).create()
  
 # Verify the code and mark attendance
 
-# ... (import statements and Snowflake configuration)
+ 
 
 # Verify the code and mark attendance
-
-# ... (import statements and Snowflake configuration)
-
-# Verify the code and mark attendance
-# ... (import statements and Snowflake configuration)
-
-# Verify the code and mark attendance
-# ... (import statements and Snowflake configuration)
-
-# Verify the code and mark attendance
-# ... (import statements and Snowflake configuration)
-
-# Verify the code and mark attendance
-# ... (import statements and Snowflake configuration)
-
-# Verify the code and mark attendance
-# ... (import statements and Snowflake configuration)
-
 # Verify the code and mark attendance
 def verify_and_mark_attendance(verification_code):
     attendees = session.read.table("EMP")
@@ -60,7 +42,7 @@ def verify_and_mark_attendance(verification_code):
         
         # Mark attendee as attended using the DataFrame API
         attendees_to_update = attendees.filter(attendees["CODE"] == verification_code).filter(~attendees["ATTENDED"])
-        attendees_to_update = attendees_to_update.withColumn("ATTENDED", True)
+        attendees_to_update = attendees_to_update.transform(lambda row: row.withColumn("ATTENDED", True))
         
         # Create a new DataFrame containing the updated rows
         updated_attendees = attendees_to_update.select("ATTENDEE_ID", "ATTENDED")
@@ -81,6 +63,9 @@ def verify_and_mark_attendance(verification_code):
         return attendee_id
     else:
         return None
+
+# ... (rest of the Streamlit app code)
+
 
 # Streamlit app
 st.title('Event Attendance Verification')
