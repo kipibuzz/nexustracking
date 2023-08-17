@@ -12,10 +12,11 @@ CONNECTION_PARAMETERS = {
 }
 
 # Create Snowflake connection
-conn = snowflake.connector.connect(CONNECTION_PARAMETERS)
+
 
 # Function to verify and mark attendance
 def verify_and_mark_attendance(verification_code):
+    conn = snowflake.connector.connect(CONNECTION_PARAMETERS)
     cursor = conn.cursor()
 
     # Check if attendee exists and has not attended
