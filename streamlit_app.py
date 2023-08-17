@@ -1,6 +1,5 @@
 import streamlit as st
 import snowflake.connector
-from snowflake.snowpark.session import Session
 
 # Snowflake connection parameters
 CONNECTION_PARAMETERS = {
@@ -12,19 +11,27 @@ CONNECTION_PARAMETERS = {
     "warehouse": st.secrets['warehouse'],
 }
 
-# Create Snowpark session
-session = Session.builder.configs(CONNECTION_PARAMETERS).create()
+# Create Snowflake connection
+conn = snowflake.connector.connect(CONNECTION_PARAMETERS)
 
 # Function to verify and mark attendance
 def verify_and_mark_attendance(verification_code):
-    attendees = session.read.table("EMP")
-    attendee = attendees.filter(attendees["CODE"] == verification_code).take(1)
+    cursor = conn.cursor()
 
-    if len(attendee) > 0 and not attendee[0]["ATTENDED"]:
-        attendee_id = attendee[0]["ATTENDEE_ID"]
-        session.execute(
+    # Check if attendee exists and has not attended
+    cursor.execute(
+        f"SELECT ATTENDEE_ID, ATTENDED FROM EMP WHERE CODE = '{verification_code}'"
+    )
+    row = cursor.fetchone()
+    if row and not row[1]:
+        attendee_id = row[0]
+
+        # Mark attendance
+        cursor.execute(
             f"UPDATE EMP SET ATTENDED = TRUE WHERE ATTENDEE_ID = '{attendee_id}'"
         )
+        conn.commit()
+
         return attendee_id
     else:
         return None
@@ -37,22 +44,17 @@ if st.button('Verify'):
         attendee_id = verify_and_mark_attendance(verification_code)
         if attendee_id is not None:
             st.success(f'Code verified successfully for Attendee ID: {attendee_id}! They are marked as attended.')
-
-            # Update statistics in EVENT_STATISTICS table
-            event_date = session.execute(f"SELECT CURRENT_DATE()")[0][0]
-            session.execute(
-                f"MERGE INTO EVENT_STATISTICS "
-                f"USING (SELECT '{event_date}' AS EVENT_DATE) "
-                f"ON EVENT_STATISTICS.EVENT_DATE = '{event_date}' "
-                "WHEN MATCHED THEN "
-                "UPDATE SET TOTAL_VERIFIED = TOTAL_VERIFIED + 1, TOTAL_ATTENDED = TOTAL_ATTENDED + 1 "
-                "WHEN NOT MATCHED THEN "
-                f"INSERT (EVENT_DATE, TOTAL_VERIFIED, TOTAL_ATTENDED) VALUES ('{event_date}', 1, 1)"
-            )
-
         else:
             st.error('Invalid code or attendance already marked.')
 
+# Close Snowflake connection
+conn.close()
+
 # Display event statistics
-statistics = session.read.table("EVENT_STATISTICS")
+conn = snowflake.connector.connect(**CONNECTION_PARAMETERS)
+cursor = conn.cursor()
+cursor.execute("SELECT * FROM EVENT_STATISTICS")
+statistics = cursor.fetchall()
 st.write(statistics)
+cursor.close()
+conn.close()
