@@ -29,7 +29,7 @@ session = Session.builder.configs(CONNECTION_PARAMETERS).create()
 # st.write(attendees)
 
 # Create a Snowpark session
-session = Session.builder().option(**CONNECTION_PARAMETERS).create()
+session = Session.builder().option(CONNECTION_PARAMETERS).create()
 # Verify the code and mark attendance
 def verify_and_mark_attendance(verification_code):
     attendees = session.read.table("EMP")
