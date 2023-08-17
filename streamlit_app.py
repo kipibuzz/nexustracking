@@ -101,14 +101,6 @@ if menu_choice == "Verify Attendance":
 
 # 
 
-# ... (existing code)
-
-# ... (existing code)
-
-# ... (existing code)
-
-# ... (existing code)
-
 elif menu_choice == "Attendance Statistics":
     # Attendance statistics page
     st.header('Attendance Statistics')
@@ -135,13 +127,21 @@ elif menu_choice == "Attendance Statistics":
     
     # Create a pie chart for attendance breakdown
     plt.figure(figsize=(8, 6))
-    plt.pie([total_attended, statistics['Total Not Attended']], labels=["Attended", "Not Attended"], autopct='%1.1f%%', colors=["#86bf91", "#e74c3c"])
+    
+    labels = ["Attended", "Not Attended"]
+    sizes = [total_attended, statistics['Total Not Attended']]
+    colors = ["#86bf91", "#e74c3c"]
+    
+    def func(pct, allvalues):
+        absolute = int(pct/100.*np.sum(allvalues))
+        return "{:.1f}%\n({:d})".format(pct, absolute)
+    
+    plt.pie(sizes, labels=labels, colors=colors, autopct=lambda pct: func(pct, sizes))
     plt.axis('equal')  # Equal aspect ratio ensures the pie is circular.
     plt.title("Attendance Breakdown", fontsize=16)
     
     # Display the pie chart
     st.pyplot(plt)
-
 
 
 
