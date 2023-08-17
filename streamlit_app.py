@@ -57,8 +57,8 @@ if st.button('Verify'):
         else:
             st.error('Invalid code or code already used.')
 # # Display the attendee table
-# attendees = session.read.table("EMP")
-st.write(attendees)
+attendees = session.read.table("EMP")
+#st.write(attendees)
 # Display event statistics
 statistics = session.read.table("Event_Statistics")
 st.write(statistics)
