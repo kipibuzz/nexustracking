@@ -32,7 +32,7 @@ session = Session.builder.configs(CONNECTION_PARAMETERS).create()
 def verify_and_mark_attendance(verification_code):
     attendees = session.read.table("EMP")
     filtered_attendee = attendees.filter(attendees["code"] == verification_code).filter(attendees["attended"] == False)
-    if not filtered_attendee.collect().empty():
+    if len(filtered_attendee.collect()) > 0:
         attendee_id = filtered_attendee.collect()[0]["attendee_id"]
         attendees.write \
             .overwrite() \
@@ -56,8 +56,8 @@ if st.button('Verify'):
             )
         else:
             st.error('Invalid code or code already used.')
-# Display the attendee table
-attendees = session.read.table("EMP")
+# # Display the attendee table
+# attendees = session.read.table("EMP")
 st.write(attendees)
 # Display event statistics
 statistics = session.read.table("Event_Statistics")
