@@ -54,9 +54,7 @@ if st.button('Verify'):
         if attendee_id is not None:
             st.success(f'Code verified successfully for Attendee ID: {attendee_id}! They are marked as attended.')
             # Increment statistics in Event_Statistics table
-           session.execute(
-    f"UPDATE NEXUS.ATTENDENCE.EVENT_STATISTICS SET TOTAL_VERIFIED = TOTAL_VERIFIED + 1, TOTAL_ATTENDED = TOTAL_ATTENDED + 1 WHERE EVENT_DATE = CURRENT_DATE()"
-)
+           session.execute(f"UPDATE NEXUS.ATTENDENCE.EVENT_STATISTICS SET TOTAL_VERIFIED = TOTAL_VERIFIED + 1, TOTAL_ATTENDED = TOTAL_ATTENDED + 1 WHERE EVENT_DATE = CURRENT_DATE()")
         else:
             st.error('Invalid code or code already used.')
 # # Display the attendee table
