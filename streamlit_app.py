@@ -105,6 +105,8 @@ if menu_choice == "Verify Attendance":
 
 # ... (existing code)
 
+# ... (existing code)
+
 elif menu_choice == "Attendance Statistics":
     # Attendance statistics page
     st.header('Attendance Statistics')
@@ -115,6 +117,16 @@ elif menu_choice == "Attendance Statistics":
     # Generate statistics
     statistics = generate_attendance_statistics(attendance_data)
 
+    # Display attendance counts
+    total_attended = statistics['Total Attended']
+    total_not_attended = statistics['Total Not Attended']
+    
+    st.write(f"Total Attendees: {statistics['Total Attendees']}")
+
+    st.write(f"**Total Attended:** {total_attended}", 
+             f"**Total Not Attended:** {total_not_attended}", 
+             unsafe_allow_html=True)
+             
     # Create a pie chart for attendance breakdown
     plt.figure(figsize=(6, 6))
     plt.pie(statistics.values(), labels=statistics.keys(), autopct='%1.1f%%', colors=["#86bf91", "#f1c40f", "#e74c3c"])
@@ -123,10 +135,6 @@ elif menu_choice == "Attendance Statistics":
     st.subheader('Attendance Breakdown')
     st.pyplot(plt)
 
-    # Display attendance counts
-    st.write(f"**Total Attendees:** {statistics['Total Attendees']}")
-    st.write(f"**Total Attended:** {statistics['Total Attended']}")
-    st.write(f"**Total Not Attended:** {statistics['Total Not Attended']}")
 
 
 
