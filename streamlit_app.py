@@ -28,7 +28,7 @@ def verify_and_mark_attendance(verification_code):
         query = (
             f"UPDATE EMP SET ATTENDED = TRUE WHERE ATTENDEE_ID = '{attendee_id}'"
         )
-        session.execute_query(query)
+        session.sql(query)
         
         return attendee_id
     else:
